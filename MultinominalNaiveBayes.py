@@ -9,7 +9,6 @@ Implementation of the Multinominal Naive Bayes document classifier with extentio
 
 """
 
-
 class NaiveBayesClassifier():
     def __init__(self):
         self._likelihoods = None
@@ -348,87 +347,18 @@ class CrossValidation():
             trainingSetDict = self.p.getTrainingSetDict(attributeID_train, X_train, y_train)
 
             # Preprocessing of training set
-            # If running standard OR chosen extended representation
-            if self.experiment == None:
-                # Extended naive bayes transformations
-                if not self.standard:
-                    trainingSetDict = self.p.transformTermFrequency(trainingSetDict)
-                    trainingSetDict = self.p.inverseDocumentFrequencyTransform(trainingSetDict) 
-                countWordClassDict = self.p.getCountWordClassDict(trainingSetDict, y_train)
-                countClassDict = self.p.getCountClassDict(countWordClassDict)
-                wordFrequencyDict = self.p.getWordFrequencyDict(countWordClassDict)
-                # Extended naive bayes transformations cont.
-                if not self.standard:
-                    wordFrequencyDict = self.p.removeStopWords(wordFrequencyDict)
-                    #wordFrequencyDict = self.p.getTopXWords(wordFrequencyDict, self.topXWords)
-            #########################
-            # Running CV experiments#
-            #########################
-            # The following block describes the various experiments ran for testing different extentions to the Multinominal Naive Bayes classifier
-            # Each one was ran by selecting a different experiment number when performing cross validation (as shown below)
-            else:
-                # Stop Words (SW) Transform
-                if self.experiment == 1:                    
-                    countWordClassDict = self.p.getCountWordClassDict(trainingSetDict, y_train)
-                    countClassDict = self.p.getCountClassDict(countWordClassDict)
-                    wordFrequencyDict = self.p.getWordFrequencyDict(countWordClassDict)
-                    wordFrequencyDict = self.p.removeStopWords(wordFrequencyDict)
-                # Term Frequency (TF) Transform
-                elif self.experiment == 2:
-                    trainingSetDict = self.p.transformTermFrequency(trainingSetDict) #s4.1
-                    countWordClassDict = self.p.getCountWordClassDict(trainingSetDict, y_train)
-                    countClassDict = self.p.getCountClassDict(countWordClassDict)
-                    wordFrequencyDict = self.p.getWordFrequencyDict(countWordClassDict)
-                # IDF
-                elif self.experiment == 3:
-                    trainingSetDict = self.p.inverseDocumentFrequencyTransform(trainingSetDict) #s4.2
-                    countWordClassDict = self.p.getCountWordClassDict(trainingSetDict, y_train)
-                    countClassDict = self.p.getCountClassDict(countWordClassDict)
-                    wordFrequencyDict = self.p.getWordFrequencyDict(countWordClassDict)
-                    pass
-                # Length Transform (Normilisation)
-                elif self.experiment == 4:
-                    trainingSetDict = self.p.transformLength(trainingSetDict) #s4.3
-                    countWordClassDict = self.p.getCountWordClassDict(trainingSetDict, y_train)
-                    countClassDict = self.p.getCountClassDict(countWordClassDict)
-                    wordFrequencyDict = self.p.getWordFrequencyDict(countWordClassDict)
-                # SF + TF
-                elif self.experiment == 5:
-                    trainingSetDict = self.p.transformTermFrequency(trainingSetDict) #s4.1
-                    countWordClassDict = self.p.getCountWordClassDict(trainingSetDict, y_train)
-                    countClassDict = self.p.getCountClassDict(countWordClassDict)
-                    wordFrequencyDict = self.p.getWordFrequencyDict(countWordClassDict)
-                    wordFrequencyDict = self.p.removeStopWords(wordFrequencyDict)
-                # SF, TF, IDF
-                elif self.experiment == 6:
-                    trainingSetDict = self.p.transformTermFrequency(trainingSetDict) #s4.1
-                    trainingSetDict = self.p.inverseDocumentFrequencyTransform(trainingSetDict) #s4.2
-                    countWordClassDict = self.p.getCountWordClassDict(trainingSetDict, y_train)
-                    countClassDict = self.p.getCountClassDict(countWordClassDict)
-                    wordFrequencyDict = self.p.getWordFrequencyDict(countWordClassDict)
-                    wordFrequencyDict = self.p.removeStopWords(wordFrequencyDict)
-                # SF + IDF
-                elif self.experiment == 7:
-                    trainingSetDict = self.p.inverseDocumentFrequencyTransform(trainingSetDict) #s4.2
-                    countWordClassDict = self.p.getCountWordClassDict(trainingSetDict, y_train)
-                    countClassDict = self.p.getCountClassDict(countWordClassDict)
-                    wordFrequencyDict = self.p.getWordFrequencyDict(countWordClassDict)
-                    wordFrequencyDict = self.p.removeStopWords(wordFrequencyDict)
-                # Word Count
-                elif self.experiment == 8:
-                    countWordClassDict = self.p.getCountWordClassDict(trainingSetDict, y_train)
-                    countClassDict = self.p.getCountClassDict(countWordClassDict)
-                    wordFrequencyDict = self.p.getWordFrequencyDict(countWordClassDict)
-                    wordFrequencyDict = self.p.getTopXWords(wordFrequencyDict, self.topXWords)
-                # Top10k, SW, TF & IDF
-                elif self.experiment == 9:
-                    trainingSetDict = self.p.transformTermFrequency(trainingSetDict)
-                    trainingSetDict = self.p.inverseDocumentFrequencyTransform(trainingSetDict) 
-                    countWordClassDict = self.p.getCountWordClassDict(trainingSetDict, y_train)
-                    countClassDict = self.p.getCountClassDict(countWordClassDict)
-                    wordFrequencyDict = self.p.getWordFrequencyDict(countWordClassDict)
-                    wordFrequencyDict = self.p.removeStopWords(wordFrequencyDict)
-                    wordFrequencyDict = self.p.getTopXWords(wordFrequencyDict, self.topXWords)
+
+            # Extended naive bayes transformations
+            if not self.standard:
+                trainingSetDict = self.p.transformTermFrequency(trainingSetDict)
+                trainingSetDict = self.p.inverseDocumentFrequencyTransform(trainingSetDict) 
+            countWordClassDict = self.p.getCountWordClassDict(trainingSetDict, y_train)
+            countClassDict = self.p.getCountClassDict(countWordClassDict)
+            wordFrequencyDict = self.p.getWordFrequencyDict(countWordClassDict)
+            # Extended naive bayes transformations cont.
+            if not self.standard:
+                wordFrequencyDict = self.p.removeStopWords(wordFrequencyDict)
+                #wordFrequencyDict = self.p.getTopXWords(wordFrequencyDict, self.topXWords)
 
             # Fitting model and classifying
             nb = NaiveBayesClassifier()
