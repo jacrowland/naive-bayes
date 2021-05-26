@@ -4,22 +4,26 @@ import csv
 import random
 import copy
 
-"""
-Implementation of the Multinominal Naive Bayes document classifier with extentions
-
-"""
-
 class NaiveBayesClassifier():
+    """
+    Implementation of the Multinominal Naive Bayes document classifier with extentions
+    """
     def __init__(self):
         self._likelihoods = None
         self._priors = None
         self._classes = [] # unique classes in the training set
 
-    """
-    fit()
-    Fits the training data to the model to learn off
-    """
     def fit(self, X:list, y:list, countWordClassDict:dict, countClassDict:dict, wordFrequencyDict:dict):
+        """
+        Fits the training data to the model to learn off
+
+        Paramaters:
+        X (list): A list representing features for each example in the training set
+        y (list): A list representing the class for each example in the training set
+        countWordClassDict (dict): dictionary containing the unique word frequencies that appear in each class
+        countClassDict (dict): contains the total number of words that appear in documents of each class
+        wordFrequencyDict (dict): contains the total frequency of a word across all classes 
+        """
         p = Preprocessor()
         priors = p.calculatePriors(y)
         likelihoods = p.calculateLikelihoods(countWordClassDict, countClassDict, wordFrequencyDict)
@@ -27,11 +31,16 @@ class NaiveBayesClassifier():
         self._priors = priors
         self._likelihoods = likelihoods
 
-    """
-    classify()
-    Returns the most probable class for a given document
-    """
     def classify(self, document:list) -> str:
+        """
+        Returns the most probable class for a given document
+
+        Paramaters:
+        document(list): An example to classify
+
+        Returns:
+        str: The most probable class
+        """
         predictions = []
         for y in self._classes:
             probability = math.log(self._priors[y]) # Logging probabilities
@@ -43,28 +52,41 @@ class NaiveBayesClassifier():
             predictions.append((y, probability))
         predictions = sorted(predictions, key=lambda tup: tup[1], reverse=True) # to get most likely class
         return predictions[0][0] # return the most probable class
-
 class Preprocessor():
+    """
+    Preprocesses the training and test data before it is used in model training and classification
+
+    """
     def __init__(self):
         self.stopWords = self.importStopWords("stopWords.txt")
 
-    """
-    importStopWords()
-    Reads list of common english words from a text files 
-    """
-    def importStopWords(self, path='stopwords.txt'):
+    def importStopWords(self, path='stopwords.txt')->list:
+        """
+        Reads list of common english words from a text files 
+
+        Paramaters:
+        path (str): The path to the .txt file of stopword (one word per line)
+
+        Returns:
+        list[str]: A list of stop words
+        """
         with open('stopwords.txt', encoding='utf8') as f:
             lines = f.readlines()
         for i in range(len(lines)):
             lines[i] = lines[i].replace('\n', '')
         return lines
 
-    """
-    getCountWordClassDict()
-    Returns a dictionary containing the unique word frequencies that appear in each class
-    e.g. How many times the word x appears across all documents of class y
-    """
     def getCountWordClassDict(self, trainingSetDict:dict, y:list) -> dict:
+        """
+        Returns a dictionary containing the unique word frequencies that appear in each class
+        e.g. How many times the word x appears across all documents of class y
+
+        Paramaters:
+        trainingSetDict (dict) : A dictionary representing the training set 
+
+        Returns:
+        dict: A dictionary of word frequencies for unique words appearing in each class
+        """
         countWordClassDict = {}
         for label in y:
             if label not in countWordClassDict:
@@ -79,12 +101,17 @@ class Preprocessor():
                     countWordClassDict[label][word] += trainingSetDict[documentID][label][word]
         return countWordClassDict
 
-    """
-    getCountClassDict()
-    Returns a dictionary that contains the total number of words that appear in documents of each class.
-    e.g. The sum of all word counts across documents in class y is x
-    """
-    def getCountClassDict(self, countWordClassDict:dict):
+    def getCountClassDict(self, countWordClassDict:dict)->dict:
+        """
+        Creates a dictionary that contains the total number of words that appear in documents of each class.
+        e.g. The sum of all word counts across documents in class y is x
+
+        Paramaters:
+        countWordClassDict (dict): Dictionary of frequencies for each word that appears in a class (for each class)
+
+        Returns:
+        dict: frequencies for each unique word
+        """
         countClassDict = {}
         for y in countWordClassDict:
             totalWords = 0
@@ -94,12 +121,17 @@ class Preprocessor():
             countClassDict[y] = totalWords
         return countClassDict
 
-    """
-    calculatePriors()
-    Returns a dictionary of prior probabilities.
-    E.g. What is the probability that a document of class y occurs out of all documents in the training set?
-    """
     def calculatePriors(self, y:list)->dict:
+        """
+        Calculates prior probabilities for each class
+        E.g. What is the probability that a document of class y occurs out of all documents in the training set?
+
+        Paramaters:
+        y (list): A list of class strings for each training example
+
+        Returns:
+        dict: A dictionary containing the prior probability for each unique class
+        """
         priors = {}
         for label in y:
             if label not in priors:
@@ -111,11 +143,16 @@ class Preprocessor():
 
         return priors
 
-    """
-    getWordFrequencyDict()
-    Returns a dictionary that contains the total frequency of a word across all classes 
-    """
     def getWordFrequencyDict(self, countWordClassDict:dict) -> dict:
+        """
+        Creates a dictionary containing the total frequency of a word across all classes 
+
+        Paramaters:
+        countWordClassDict (dict): A dictionary of word frequencies by class
+
+        Returns:
+        dict: dictionary containing the total frequency of a word across all classes 
+        """
         wordFrequencyDict = {}
         for y in countWordClassDict:
             for word in countWordClassDict[y]:
@@ -125,11 +162,16 @@ class Preprocessor():
                     wordFrequencyDict[word] += countWordClassDict[y][word]
         return wordFrequencyDict
 
-    """
-    transformTermFrequency()
-    This method implements word frequency transform as described in section 4.1 of Rennie at el. (2003)
-    """
     def transformTermFrequency(self, trainingSetDict:dict) -> dict:
+        """
+        Word frequency transform as described in section 4.1 of Rennie at el. (2003)'
+
+        Paramaters:
+        trainingSetDict (dict): training set
+
+        Returns:
+        dict: Transformed training set
+        """
         for document in trainingSetDict:
             label = list(trainingSetDict[document].keys())[0]
             for word in trainingSetDict[document][label]:
@@ -138,11 +180,16 @@ class Preprocessor():
                 trainingSetDict[document][label][word] = frequency
         return trainingSetDict
 
-    """
-    inverseDocumentFrequencyTransform()
-    This method implements inverse document frequency transform as described in section 4.2 of Rennie at el. (2003)
-    """
     def inverseDocumentFrequencyTransform(self, trainingSetDict:dict) -> dict:
+        """
+        Inverse document frequency transform as described in section 4.2 of Rennie at el. (2003)
+
+        Paramaters:
+        trainingSetDict (dict): training set
+
+        Returns:
+        dict: Transformed training set
+        """
         wordDocumentFrequencyDict = {}
         for documentID in trainingSetDict:
             label = list(trainingSetDict[documentID].keys())[0]
@@ -158,12 +205,17 @@ class Preprocessor():
                 trainingSetDict[documentID][label][word] = trainingSetDict[documentID][label][word] * math.log(numDocuments / wordDocumentFrequencyDict[word])
         return trainingSetDict
 
-    """
-    transformLength()
-    This method implements the normalisation extention as described in section 4.3 of Rennie at el. (2003)
-    This updates each word frequency by dividing it by the sqrt of the sum of squares for each word
-    """
     def transformLength(self, trainingSetDict:dict) -> dict:
+        """
+        Normalisation transformation as described in section 4.3 of Rennie at el. (2003)
+        This updates each word frequency by dividing it by the sqrt of the sum of squares for each word
+
+        Paramaters:
+        trainingSetDict (dict): training set
+
+        Returns:
+        dict: Transformed training set
+        """
         for documentID in trainingSetDict:
             label = list(trainingSetDict[documentID].keys())[0]
             # Calculate document length
@@ -176,12 +228,19 @@ class Preprocessor():
                 trainingSetDict[documentID][label][word] = trainingSetDict[documentID][label][word] / length
         return trainingSetDict
 
-    """
-    calculateLikelihood()
-    Creates a dictionary of conditional probabilities for each word given a class.
-    e.g. The probability that word x appears in a document of class y -> P(x|y)
-    """
-    def calculateLikelihoods(self, countWordClassDict:dict, countClassDict:dict, wordFrequencyDict:dict):
+    def calculateLikelihoods(self, countWordClassDict:dict, countClassDict:dict, wordFrequencyDict:dict)->dict:
+        """
+        Creates a dictionary of conditional probabilities for each word given a class.
+        e.g. The probability that word x appears in a document of class y -> P(x|y)
+
+        Paramaters:
+        countWordClassDict (dict): word frequencies for unique words appearing in each class
+        countClassDict (dict): frequencies for each unique word
+        wordFrequencyDict (dict): total frequency of a word across all classes by word
+
+        Returns:
+        dict: Conditional probabilities for each word given a class
+        """
         likelihoodDict = {}
         for word in wordFrequencyDict:
             for y in countWordClassDict:
@@ -194,22 +253,33 @@ class Preprocessor():
                 likelihoodDict[y][word] = (countWordClass + 1) / (countClassDict[y] + len(wordFrequencyDict))
         return likelihoodDict
     
-    """
-    removeStopWords()
-    Removes all common english words from the dictionary so that they are not used in 
-    classification of an new document
-    """
-    def removeStopWords(self, wordFrequencyDict:dict):
+    def removeStopWords(self, wordFrequencyDict:dict)->dict:
+        """
+        Removes all common english words from the dictionary so that they are not used in 
+        classification of an new document
+
+        Paramaters:
+        wordFrequencyDict (dict): total frequency of a word across all classes by word
+
+        Return:
+        dict: Cleaned wordFrequencyDict (with stop words removed)
+        """
         for stopWord in self.stopWords:
             if stopWord in wordFrequencyDict:
                 wordFrequencyDict.pop(stopWord)
         return wordFrequencyDict
 
-    """
-    getTopXWords()
-    Finds and returns a dictionary of the top most frequent words in the training data
-    """
     def getTopXWords(self, wordFrequencyDict:dict, X:int=1000) -> dict:
+        """
+        Finds and returns a dictionary of the top most frequent words in the training data
+
+        Paramaters:
+        wordFrequencyDict (dict): total frequency of a word across all classes by word
+        X (int): top number of words to find e.g. X = 10 -> find top 10 words
+
+        Returns:
+        dict: A dictionary of the top X words
+        """
         topWordsDict = {}
         while (len(topWordsDict) != X):
             key = max(wordFrequencyDict, key=lambda word: wordFrequencyDict[word])
@@ -217,12 +287,19 @@ class Preprocessor():
             wordFrequencyDict.pop(key)
         return topWordsDict
 
-    """
-    getTrainingSetDict()
-    Returns a dictionary of training examples 
-    TrainingSetDic = {attributeID:{class:word:wordCount}}
-    """
     def getTrainingSetDict(self, attributeIDs:list, X:list, y:list) -> dict:
+        """
+        Returns a dictionary of training examples 
+        TrainingSetDic = {attributeID:{class:word:wordCount}}
+
+        Paramaters:
+        attributeIDs(list): A list of IDs for each document
+        X (list[list[str]]): A list of word (features) for each example
+        y (list[str]): A list class labels
+
+        Returns:
+        dict: training examples in dict form
+        """
         trainingSetDict = {}
         for i in range(len(attributeIDs)):
             document = X[i]
@@ -235,6 +312,17 @@ class Preprocessor():
         return trainingSetDict
 
 def importData(path:str, labelsInSet:bool=True) -> tuple:
+    """
+    Import the data from a .txt file
+
+    Paramaters:
+    path (str): A path to the .txt file
+    labelsInSet (bool): if the dataset doesn't contain labels set to false
+
+    Returns:
+    tuple: A tuple of lists for attributeIDs, features and labels if labelsInSet = True
+
+    """
     attributeIDs = []
     labels = []
     features = []
@@ -259,14 +347,28 @@ def importData(path:str, labelsInSet:bool=True) -> tuple:
     else:
         return attributeIDs, features
 
-"""
-CrossValidation()
-This class implements the Stratified Cross Validation where the distribution of each fold matches 
-that class distribution of the training set.
-Returns the mean accuracy, the standard deviation, and N - the number of tests (which is k)
-"""
 class CrossValidation():
+    """
+    This class implements the Stratified Cross Validation where the distribution of each fold matches 
+    that class distribution of the training set.
+    Returns the mean accuracy, the standard deviation, and N - the number of tests (which is k)
+
+    """
     def __init__(self, attributeIDs:list, X:list, y:list, random_state=1234, k=10, topXWords=10000, standard=False, experiment=None):
+        """
+        Initialise the Cross Validator
+
+        Paramaters:
+        attributeIDs(list): list of document ids
+        X (list): list of word features for each document
+        y (list): list of document labels
+        random_state(int): used to set random seed for fold generation
+        k (int): number of folds
+        topXWords (int): top number of unique words to use in training\
+        standard (bool): run standard naive bayes with no extentions
+        [deprecated] experiment(bool)
+
+        """
         self.attributeIDs = attributeIDs
         self.X = X # full training set - abstracts e.g. features
         self.y = y # full training set - labels
@@ -280,6 +382,10 @@ class CrossValidation():
         self.folds = self.generateStratifiedFolds()
 
     def generateStratifiedFolds(self):
+        """
+        Create k folds that match the training set class distribution 
+        
+        """
         folds = []
         foldDistribution = {} 
         labelIndicesDict = {}
@@ -317,7 +423,13 @@ class CrossValidation():
 
         return folds
                 
-    def run(self):
+    def run(self)->float:
+        """
+        Run k-fold stratified CV
+
+        Returns:
+        float: the mean classification accuracy for k-fold CV
+        """
         accuracies = []
         # for each fold
         for i in range(len(self.folds)):
@@ -428,5 +540,6 @@ def main():
                     ID = testAttributeIDs[i]
                     writer.writerow([ID, prediction])
         print("Complete.")
-        
-main()
+
+if __name__ == "__main__":
+    main()
